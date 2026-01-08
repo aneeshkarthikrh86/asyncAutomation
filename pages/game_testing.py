@@ -1,4 +1,5 @@
 class GameTesting:
+    #add therapy
     def __init__(self, page, provider_index):
         self.page = page
         self.provider_index = provider_index
