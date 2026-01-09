@@ -25,8 +25,8 @@ class GameTesting:
         await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
         total_games = await self.page.locator(PLAY_BTN).count()
         print(f"🎮 Games on page {page_no}: {total_games}")
-
-        for i in range(total_games):
+        GamesToBeTested = min(total_games)
+        for i in range(GamesToBeTested):
             play_btn = self.page.locator(PLAY_BTN).nth(i)
             await play_btn.scroll_into_view_if_needed()
 
@@ -58,11 +58,57 @@ class GameTesting:
                 await self.page.locator(CLOSE_BTN).click()
                 await self.page.wait_for_timeout(1000)
                     
-            for _ in range(10):  # 50 seconds
+            # Wait until we are really back (Logout visible)
+            for _ in range(10):  # 10 × 2s = 20s
                 if await self.page.locator(LOGOUT_BTN).is_visible():
-                    # print("✅ YES (Logout button seen)")
                     break
-                await self.page.wait_for_timeout(2000)        
+
+                if await self.page.locator(BACK_HOME_BTN).is_visible():
+                    await self.page.locator(BACK_HOME_BTN).click()
+                elif await self.page.locator(CLOSE_BTN).is_visible():
+                    await self.page.locator(CLOSE_BTN).click()
+
+                await self.page.wait_for_timeout(2000)  
+            
+            # 🔑 THIS IS THE LINK YOU ASKED FOR
+            await self._return_to_page(page_no)  
+                
+    async def _return_to_page(self, page_no):
+        PLAY_BTN = "xpath=//button[normalize-space()='Play Now']"
+        PAGINATION_BUTTONS = (
+            "xpath=//div[@class='p-holder admin-pagination']"
+            "/button[not(contains(@class,'p-prev')) and not(contains(@class,'p-next'))]"
+        )
+
+        if page_no == 1:
+            await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
+            return
+
+        paginations = self.page.locator(PAGINATION_BUTTONS)
+        await paginations.first.wait_for(state="visible", timeout=20000)
+
+        target_btn = self.page.locator(
+            f"xpath=//div[@class='p-holder admin-pagination']"
+            f"/button[normalize-space(text())='{page_no}']"
+        )
+
+        if await target_btn.count() > 0:
+            await target_btn.click()
+            await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
+            return
+
+        for _ in range(30):
+            count = await paginations.count()
+            if count < 2:
+                break
+
+            await paginations.nth(count - 2).click()
+            await self.page.wait_for_timeout(2000)
+
+            if await target_btn.count() > 0:
+                await target_btn.click()
+                await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
+                return 
                 
                 
 

@@ -2,8 +2,8 @@ class LiveCasinoPage:
     def __init__(self, page):
         self.page = page
         
-    async def KiveCasino_home(self):
-        await self.page.click("//a[text()='  Live Casino']")
+    async def LiveCasino_home(self):
+        await self.page.click("//a[text()=' Live Casino']")
         await self.page.hover("//a[text()=' Home']")
         
     async def GameOpenclose(self):
