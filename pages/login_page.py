@@ -6,10 +6,7 @@ class LoginPage:
         await self.page.goto("https://member-trackaud.ibstest.site/en-au")
 
     async def login(self, username, password):
-        # await self.page.click("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
-        close_btn = self.page.locator("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
-        if await close_btn.is_visible():
-            await close_btn.click()
+        await self.page.click("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
         await self.page.click("//button[@class='topbar_btn_2 hidden sm:block' and text()='Login']")
         await self.page.fill("//input[@placeholder='Enter Your Username']", username)
         await self.page.fill("//input[@placeholder='Enter Your Password']", password)
