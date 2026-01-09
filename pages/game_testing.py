@@ -54,14 +54,14 @@ class GameTesting:
                     await self.page.locator(BACK_HOME_BTN).click()
                     await self.page.wait_for_timeout(1000)
                     await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                    await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                    await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
                 except:
                     if await self.page.locator(BACK_HOME_BTN).is_visible():
                         print(f"Failed: {game_name}")
                         await self.page.locator(BACK_HOME_BTN).click()
                         await self.page.wait_for_timeout(1000)
                         await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                        await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                        await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
                     else:
                         print(f"Success: {game_name}")
                         await self.page.wait_for_timeout(5000)
@@ -69,7 +69,16 @@ class GameTesting:
                         await self.page.locator(CLOSE_BTN).click()
                         await self.page.wait_for_timeout(1000)
                         await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                        await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                        await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                        
+            else:
+                print(f"Success: {game_name}")
+                await self.page.wait_for_timeout(5000)
+                await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
+                await self.page.locator(CLOSE_BTN).click()
+                await self.page.wait_for_timeout(1000)
+                await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
                     
                         
     async def logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no):            
