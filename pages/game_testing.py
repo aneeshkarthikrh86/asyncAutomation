@@ -26,7 +26,7 @@ class GameTesting:
         total_games = await self.page.locator(PLAY_BTN).count()
         print(f"🎮 Games on page {page_no}: {total_games}")
 
-        for i in range(1, total_games):
+        for i in range(total_games):
             play_btn = self.page.locator(PLAY_BTN).nth(i)
             await play_btn.scroll_into_view_if_needed()
 
@@ -48,19 +48,15 @@ class GameTesting:
                     
             if toast_found:
                 print(f"Failed: {game_name}")
-                for _ in range(5):
-                    if await self.page.locator(BACK_HOME_BTN).is_visible():
-                        await self.page.locator(BACK_HOME_BTN).click()
-                        break
-                    await self.page.wait_for_timeout(1000)
+                await self.page.wait_for_timeout(1000)
+                await self.page.locator(BACK_HOME_BTN).click()
+                await self.page.wait_for_timeout(1000)
                         
             else:
                 print(f"Success: {game_name}")
-                for _ in range(5):
-                    if await self.page.locator(CLOSE_BTN).is_visible():
-                        await self.page.locator(CLOSE_BTN).click()
-                        break
-                    await self.page.wait_for_timeout(1000)
+                await self.page.wait_for_timeout(5000)
+                await self.page.locator(CLOSE_BTN).click()
+                await self.page.wait_for_timeout(1000)
                     
             for _ in range(10):  # 50 seconds
                 if await self.page.locator(LOGOUT_BTN).is_visible():
