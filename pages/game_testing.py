@@ -33,7 +33,7 @@ class GameTesting:
             await name_el.wait_for(state="visible", timeout=10000)
             game_name = await name_el.inner_text()
 
-            print(f"▶ Opening: {game_name}")
+            # print(f"▶ Opening: {game_name}")
             await play_btn.click()
 
             try:
