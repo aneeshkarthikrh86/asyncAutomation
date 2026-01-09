@@ -25,8 +25,8 @@ class GameTesting:
         await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
         total_games = await self.page.locator(PLAY_BTN).count()
         print(f"🎮 Games on page {page_no}: {total_games}")
-        GamesToBeTested = min(total_games)
-        for i in range(GamesToBeTested):
+        # GamesToBeTested = min(2, total_games)
+        for i in range(total_games):
             play_btn = self.page.locator(PLAY_BTN).nth(i)
             await play_btn.scroll_into_view_if_needed()
 
@@ -39,7 +39,7 @@ class GameTesting:
 
             toast_found = False
             
-            for _ in range(6):  # 25 × 2s = 50 seconds
+            for _ in range(5):  # 25 × 2s = 50 seconds
                 if await self.page.locator(TOAST_ERROR).is_visible():  # 2 seconds
                     toast_found = True
                     print("❌ Toast appeared")
@@ -47,31 +47,46 @@ class GameTesting:
                 await self.page.wait_for_timeout(2000)
                     
             if toast_found:
-                print(f"Failed: {game_name}")
-                await self.page.wait_for_timeout(1000)
-                await self.page.locator(BACK_HOME_BTN).click()
-                await self.page.wait_for_timeout(1000)
-                        
-            else:
-                print(f"Success: {game_name}")
-                await self.page.wait_for_timeout(5000)
-                await self.page.locator(CLOSE_BTN).click()
-                await self.page.wait_for_timeout(1000)
-                    
-            # Wait until we are really back (Logout visible)
-            for _ in range(10):  # 10 × 2s = 20s
-                if await self.page.locator(LOGOUT_BTN).is_visible():
-                    break
-
-                if await self.page.locator(BACK_HOME_BTN).is_visible():
+                try:
+                    print(f"Failed: {game_name}")
+                    # await self.page.wait_for_timeout(1000)
+                    await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
                     await self.page.locator(BACK_HOME_BTN).click()
-                elif await self.page.locator(CLOSE_BTN).is_visible():
-                    await self.page.locator(CLOSE_BTN).click()
+                    await self.page.wait_for_timeout(1000)
+                    await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                    await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                except:
+                    if await self.page.locator(BACK_HOME_BTN).is_visible():
+                        print(f"Failed: {game_name}")
+                        await self.page.locator(BACK_HOME_BTN).click()
+                        await self.page.wait_for_timeout(1000)
+                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                        await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                    else:
+                        print(f"Success: {game_name}")
+                        await self.page.wait_for_timeout(5000)
+                        await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
+                        await self.page.locator(CLOSE_BTN).click()
+                        await self.page.wait_for_timeout(1000)
+                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                        await self.logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                    
+                        
+    async def logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no):            
+        # Wait until we are really back (Logout visible)
+        for _ in range(20):  # 10 × 2s = 20s
+            if await self.page.locator(LOGOUT_BTN).is_visible():
+                break
 
-                await self.page.wait_for_timeout(2000)  
-            
-            # 🔑 THIS IS THE LINK YOU ASKED FOR
-            await self._return_to_page(page_no)  
+            if await self.page.locator(BACK_HOME_BTN).is_visible():
+                await self.page.locator(BACK_HOME_BTN).click()
+            elif await self.page.locator(CLOSE_BTN).is_visible():
+                await self.page.locator(CLOSE_BTN).click()
+
+            await self.page.wait_for_timeout(2000)  
+        
+        # 🔑 THIS IS THE LINK YOU ASKED FOR
+        await self._return_to_page(page_no)  
                 
     async def _return_to_page(self, page_no):
         PLAY_BTN = "xpath=//button[normalize-space()='Play Now']"

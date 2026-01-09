@@ -6,6 +6,8 @@ class LiveCasinoPage:
         await self.page.click("//a[text()=' Live Casino']")
         await self.page.hover("//a[text()=' Home']")
         
+        await self.GameOpenclose()
+        
     async def GameOpenclose(self):
         GamesNames_ElemeCASINOnt = "//div[@class='flex items-center overflow-auto py-[50px] none-scrollbar']/button//div[@class='casino_label']/div"
         Games_Element = "//div[@class='flex items-center overflow-auto py-[50px] none-scrollbar']/button/div//img[@class='logo not_allow_select_drag']"
