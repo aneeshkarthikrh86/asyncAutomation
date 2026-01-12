@@ -11,93 +11,113 @@ class GameTesting:
             "//div[@class='game_btn_content_text']"
         )
 
-        TOAST_ERROR = (
-            "xpath=//div[contains(@class,'toast-message') "
-            "and contains(text(),'Something went wrong')]"
-        )
+        TOAST_ERROR = "xpath=//div[contains(@class,'toast-message') and contains(text(),'Something went wrong')]"
+        DEPOSIT_BTN = "xpath=//a[text()='Deposit']"
 
         BACK_HOME_BTN = "xpath=//button[text()='Back To Home']"
         CLOSE_BTN = "xpath=//div[@class='flex items-center']/button[@aria-label='Back']"
-
-        LOGOUT_BTN = "xpath=//div[@class='flex items-center']/button[text()='Logout']"
-        LOGIN_BTN = "xpath=//button[@class='topbar_btn_2 hidden sm:block' and text()='Login']"
+        LOGOUT_BTN = "xpath=//div[@class='wallet-container-desktop']/button[text()='Logout']"
 
         await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
         total_games = await self.page.locator(PLAY_BTN).count()
         print(f"🎮 Games on page {page_no}: {total_games}")
-        # GamesToBeTested = min(2, total_games)
+
         for i in range(total_games):
             play_btn = self.page.locator(PLAY_BTN).nth(i)
-            await play_btn.scroll_into_view_if_needed()
 
             name_el = play_btn.locator(GAME_NAME_REL)
             await name_el.wait_for(state="visible", timeout=10000)
             game_name = await name_el.inner_text()
 
             # print(f"▶ Opening: {game_name}")
-            await play_btn.click()
+            # Try normal click first
+            await play_btn.wait_for(state="attached", timeout=10000)
+            await play_btn.evaluate("el => el.click()")
 
-            toast_found = False
-            
-            for _ in range(5):  # 25 × 2s = 50 seconds
-                if await self.page.locator(TOAST_ERROR).is_visible():  # 2 seconds
-                    toast_found = True
-                    print("❌ Toast appeared")
+            # --------------------------------------------------
+            # 🔑 WAIT FOR RESULT: TOAST OR DEPOSIT
+            # --------------------------------------------------
+            result = None
+
+            for _ in range(110):  # 60 × 1s = 60 seconds
+                if await self.page.locator(TOAST_ERROR).is_visible():
+                    result = "fail"
                     break
-                await self.page.wait_for_timeout(2000)
-                    
-            if toast_found:
-                try:
-                    print(f"Failed: {game_name}")
-                    # await self.page.wait_for_timeout(1000)
-                    await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
+
+                if await self.page.locator(DEPOSIT_BTN).is_visible():
+                    result = "success"
+                    break
+
+                await self.page.wait_for_timeout(1000)
+
+            # --------------------------------------------------
+            # 🔑 HANDLE RESULT
+            # --------------------------------------------------
+            if result == "fail":
+                print(f"❌ Failed: {game_name}")
+                await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
+                if await self.page.locator(BACK_HOME_BTN).is_visible():
                     await self.page.locator(BACK_HOME_BTN).click()
-                    await self.page.wait_for_timeout(1000)
                     await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                    await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
-                except:
-                    if await self.page.locator(BACK_HOME_BTN).is_visible():
-                        print(f"Failed: {game_name}")
-                        await self.page.locator(BACK_HOME_BTN).click()
-                        await self.page.wait_for_timeout(1000)
-                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                        await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                    if await self.page.locator(LOGOUT_BTN).is_visible():
+                        pass
                     else:
-                        print(f"Success: {game_name}")
-                        await self.page.wait_for_timeout(5000)
+                        await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
+                        await self.page.locator(BACK_HOME_BTN).click()
+                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                        
+                        
+            elif result == "success":
+                await self.page.wait_for_timeout(6000)
+                print(f"✅ Success: {game_name}")
+                await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
+                if await self.page.locator(CLOSE_BTN).is_visible():
+                    await self.page.locator(CLOSE_BTN).click()
+                    await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                    if await self.page.locator(LOGOUT_BTN).is_visible():
+                        pass
+                    else:
                         await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
                         await self.page.locator(CLOSE_BTN).click()
-                        await self.page.wait_for_timeout(1000)
                         await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                        await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
-                        
+
             else:
-                print(f"Success: {game_name}")
-                await self.page.wait_for_timeout(5000)
-                await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
-                await self.page.locator(CLOSE_BTN).click()
-                await self.page.wait_for_timeout(1000)
-                await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                await self.logoutvisibleotnot(LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no)
+                print(f"⚠ Stuck game: {game_name}")
+                if await self.page.locator(BACK_HOME_BTN).is_visible():
+                    await self.page.locator(BACK_HOME_BTN).click()
                     
+            # --------------------------------------------------
+            # 🔑 ENSURE WE ARE BACK (LOGOUT VISIBLE)
+            # --------------------------------------------------
+            
+            # --------------------------------------------------
+            # 🔑 RETURN TO SAME PAGE
+            # --------------------------------------------------
+            if page_no>1:
+                await self._return_to_page(page_no)
+
+        await self.page.wait_for_timeout(2000)
                         
-    async def logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no):            
-        # Wait until we are really back (Logout visible)
-        for _ in range(20):  # 10 × 2s = 20s
-            if await self.page.locator(LOGOUT_BTN).is_visible():
-                break
+    # async def logoutvisibleotnot(self, LOGOUT_BTN, BACK_HOME_BTN, CLOSE_BTN, page_no):            
+    #     # Wait until we are really back (Logout visible)
+    #     for _ in range(20):  # 10 × 2s = 20s
+    #         if await self.page.locator(LOGOUT_BTN).is_visible():
+    #             break
 
-            if await self.page.locator(BACK_HOME_BTN).is_visible():
-                await self.page.locator(BACK_HOME_BTN).click()
-            elif await self.page.locator(CLOSE_BTN).is_visible():
-                await self.page.locator(CLOSE_BTN).click()
+    #         if await self.page.locator(BACK_HOME_BTN).is_visible():
+    #             print("hi7")
+    #             await self.page.locator(BACK_HOME_BTN).click()
+    #         elif await self.page.locator(CLOSE_BTN).is_visible():
+    #             print("hi6")
+    #             await self.page.locator(CLOSE_BTN).click()
 
-            await self.page.wait_for_timeout(2000)  
-        
-        # 🔑 THIS IS THE LINK YOU ASKED FOR
-        await self._return_to_page(page_no)  
+    #         await self.page.wait_for_timeout(2000)  
+    #         print("hi8")
+    #     # 🔑 THIS IS THE LINK YOU ASKED FOR
+    #     await self._return_to_page(page_no)  
                 
     async def _return_to_page(self, page_no):
+        await self.page.wait_for_timeout(2000)
         PLAY_BTN = "xpath=//button[normalize-space()='Play Now']"
         PAGINATION_BUTTONS = (
             "xpath=//div[@class='p-holder admin-pagination']"
@@ -134,7 +154,7 @@ class GameTesting:
                 await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
                 return 
                 
-                
+        await self.page.wait_for_timeout(2000)
 
 
 
