@@ -23,6 +23,7 @@ class GameTesting:
         print(f"🎮 Games on page {page_no}: {total_games}")
 
         for i in range(total_games):
+            self.last_game_index = i
             play_btn = self.page.locator(PLAY_BTN).nth(i)
 
             name_el = play_btn.locator(GAME_NAME_REL)
@@ -55,36 +56,44 @@ class GameTesting:
             # --------------------------------------------------
             if result == "fail":
                 print(f"❌ Failed: {game_name}")
-                await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
-                if await self.page.locator(BACK_HOME_BTN).is_visible():
-                    await self.page.locator(BACK_HOME_BTN).click()
-                    await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                    if await self.page.locator(LOGOUT_BTN).is_visible():
-                        pass
-                    else:
-                        await self.page.locator(BACK_HOME_BTN).wait_for(state="visible", timeout=20000)
-                        await self.page.locator(BACK_HOME_BTN).click()
-                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                        
-                        
+                action_btn = BACK_HOME_BTN
+
             elif result == "success":
                 await self.page.wait_for_timeout(6000)
                 print(f"✅ Success: {game_name}")
-                await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
-                if await self.page.locator(CLOSE_BTN).is_visible():
-                    await self.page.locator(CLOSE_BTN).click()
-                    await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
-                    if await self.page.locator(LOGOUT_BTN).is_visible():
-                        pass
-                    else:
-                        await self.page.locator(CLOSE_BTN).wait_for(state="visible", timeout=20000)
-                        await self.page.locator(CLOSE_BTN).click()
-                        await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=20000)
+                action_btn = CLOSE_BTN
 
             else:
                 print(f"⚠ Stuck game: {game_name}")
-                if await self.page.locator(BACK_HOME_BTN).is_visible():
-                    await self.page.locator(BACK_HOME_BTN).click()
+                action_btn = BACK_HOME_BTN
+
+
+            # 🔑 COMMON EXIT + LOGOUT CHECK FLOW
+            try:
+                # 1️⃣ First click (Back Home / Close)
+                await self.page.locator(action_btn).wait_for(state="visible", timeout=8000)
+                await self.page.locator(action_btn).click()
+                await self.page.wait_for_timeout(3000)
+
+                # 2️⃣ If Logout visible → next game
+                if await self.page.locator(LOGOUT_BTN).is_visible():
+                    # print("✅ Logout visible → proceeding next game")
+                    continue
+
+                # 3️⃣ Retry click if Logout not visible
+                print("⚠ Logout not visible → retrying exit click")
+                await self.page.locator(action_btn).wait_for(state="visible", timeout=8000)
+                await self.page.locator(action_btn).click()
+
+                # 4️⃣ Wait for Logout
+                await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=10000)
+                # print("✅ Logout appeared after retry → proceeding")
+
+            except:
+                # print("❌ Exit failed / Logout not visible → restarting flow")
+                await self._full_recovery(page_no)
+                continue
+
                     
             # --------------------------------------------------
             # 🔑 ENSURE WE ARE BACK (LOGOUT VISIBLE)
@@ -159,41 +168,39 @@ class GameTesting:
 
 
     async def _full_recovery(self, page_no):
-        print("🔄 Hard recovery started...")
+        print("🔄 Restarting browser state...")
 
+        # CLEAR CACHE
+        await self.page.context.clear_cookies()
+
+        # RELAUNCH URL
         await self.page.goto("https://member-trackaud.ibstest.site/en-au")
         await self.page.wait_for_load_state("networkidle")
 
-        # LOGIN AGAIN
-        await self.page.click("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
+        # LOGIN
         await self.page.click("//button[text()='Login']")
         await self.page.fill("//input[@placeholder='Enter Your Username']", "testacc")
         await self.page.fill("//input[@placeholder='Enter Your Password']", "qweqwe11")
         await self.page.click("//button[text()='Confirm']")
-        await self.page.click("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
-        await self.page.click("//button[@class='mission_daily_close_btn']/img")
         await self.page.wait_for_timeout(3000)
 
-        # GO TO SLOT
+        # SLOT
         await self.page.click("//a[text()=' Slot']")
         await self.page.hover("//a[text()=' Home']")
         await self.page.wait_for_timeout(2000)
 
-        # 🔑 RESTORE PREVIOUS PROVIDER
+        # PREVIOUS PROVIDER
         PROVIDERS_LIST = (
-            "xpath=//div[@class='mt-5 flex items-center slot_btn_container "
-            "w-full overflow-auto light-scrollbar-h pb-[10px]']//button"
+            "xpath=//div[contains(@class,'slot_btn_container')]//button"
         )
-
-        providers = self.page.locator(PROVIDERS_LIST)
-        provider_btn = providers.nth(self.provider_index)
-
-        await provider_btn.scroll_into_view_if_needed()
-        await provider_btn.click()
+        provider = self.page.locator(PROVIDERS_LIST).nth(self.provider_index)
+        await provider.scroll_into_view_if_needed()
+        await provider.click()
         await self.page.wait_for_timeout(2000)
 
-        print(f"✅ Restored provider index {self.provider_index}")
-
-        # 🔑 RESTORE PAGE
+        # PREVIOUS PAGE
         await self._return_to_page(page_no)
+
+        print(f"✅ Restored: Provider={self.provider_index}, Page={page_no}, Game={self.last_game_index + 1}")
+
 
