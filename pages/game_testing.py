@@ -18,12 +18,20 @@ class GameTesting:
 
         BACK_HOME_BTN = "xpath=//button[text()='Back To Home']"
         CLOSE_BTN = "xpath=//div[@class='flex items-center']/button[@aria-label='Back']"
+<<<<<<< HEAD
         LOGOUT_BTN = "xpath=//div[@class='flex items-center']/button[@aria-label='Logout']"
+=======
+        LOGOUT_BTN = "xpath=//div[@class='wallet-container-desktop']/button[text()='Logout']"
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
 
         await self.page.locator(PLAY_BTN).first.wait_for(state="visible", timeout=20000)
         total_games = await self.page.locator(PLAY_BTN).count()
         print(f"🎮 Games on page {page_no}: {total_games}")
+<<<<<<< HEAD
         provider_name = f"Provider{self.provider_index}"
+=======
+
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
         for i in range(total_games):
             self.last_game_index = i
             play_btn = self.page.locator(PLAY_BTN).nth(i)
@@ -34,6 +42,7 @@ class GameTesting:
 
             # print(f"▶ Opening: {game_name}")
             # Try normal click first
+<<<<<<< HEAD
             try:
                 play_btn = self.page.locator(PLAY_BTN).nth(i)
                 await play_btn.wait_for(state="visible", timeout=10000)
@@ -44,6 +53,10 @@ class GameTesting:
                     name=f"CLICK_FAIL_{provider_name}_P{page_no}_{game_name}"
                 )
                 continue   # ✅ IMPORTANT: move to next game          
+=======
+            await play_btn.wait_for(state="attached", timeout=10000)
+            await play_btn.evaluate("el => el.click()")
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
 
             # --------------------------------------------------
             # 🔑 WAIT FOR RESULT: TOAST OR DEPOSIT
@@ -92,18 +105,29 @@ class GameTesting:
 
                 # 3️⃣ Retry click if Logout not visible
                 print("⚠ Logout not visible → retrying exit click")
+<<<<<<< HEAD
                 
+=======
+                await self.page.locator(action_btn).wait_for(state="visible", timeout=8000)
+                await self.page.locator(action_btn).click()
+
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
                 # 4️⃣ Wait for Logout
                 await self.page.locator(LOGOUT_BTN).wait_for(state="visible", timeout=10000)
                 # print("✅ Logout appeared after retry → proceeding")
 
             except:
                 # print("❌ Exit failed / Logout not visible → restarting flow")
+<<<<<<< HEAD
                 print(f"❌ Still logout btn not seen. on game: {game_name} | Reason: {e}")
                 await self.screenshot.take_screenshot(name=f"CLICK_FAIL_{provider_name}_P{page_no}_{game_name}")
                 await self._full_recovery(page_no)
                 continue
                 
+=======
+                await self._full_recovery(page_no)
+                continue
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
 
                     
             # --------------------------------------------------
@@ -185,7 +209,11 @@ class GameTesting:
         await self.page.context.clear_cookies()
 
         # RELAUNCH URL
+<<<<<<< HEAD
         await self.page.goto("https://www.winx8.vip/en-th")
+=======
+        await self.page.goto("https://member-trackaud.ibstest.site/en-au")
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
         await self.page.wait_for_load_state("networkidle")
         
         try:
@@ -198,6 +226,7 @@ class GameTesting:
             print("Not seen after restart")  
 
         # LOGIN
+<<<<<<< HEAD
         try:
             ClosePopup1 = ("//div[@style='max-height: var(--window-height);']//button[@class='close_btn']/img")
             await self.page.locator(ClosePopup1).wait_for(state="visible", timeout=4000)
@@ -242,6 +271,14 @@ class GameTesting:
             print("Not seen after restart")
             pass  
         
+=======
+        await self.page.click("//button[text()='Login']")
+        await self.page.fill("//input[@placeholder='Enter Your Username']", "testacc")
+        await self.page.fill("//input[@placeholder='Enter Your Password']", "qweqwe11")
+        await self.page.click("//button[text()='Confirm']")
+        await self.page.wait_for_timeout(3000)
+
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
         # SLOT
         await self.page.click("//a[text()=' Slot']")
         await self.page.hover("//a[text()=' Home']")
@@ -249,8 +286,12 @@ class GameTesting:
 
         # PREVIOUS PROVIDER
         PROVIDERS_LIST = (
+<<<<<<< HEAD
             "xpath=//div[@class='mt-5 flex items-center slot_btn_container w-full "
             "overflow-auto light-scrollbar-h pb-[10px]']//button"
+=======
+            "xpath=//div[contains(@class,'slot_btn_container')]//button"
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
         )
         provider = self.page.locator(PROVIDERS_LIST).nth(self.provider_index)
         await provider.scroll_into_view_if_needed()

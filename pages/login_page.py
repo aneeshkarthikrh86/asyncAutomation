@@ -3,7 +3,11 @@ class LoginPage:
         self.page = page
 
     async def load(self):
+<<<<<<< HEAD
         await self.page.goto("https://www.winx8.vip/en-th")
+=======
+        await self.page.goto("https://www.npr8.com/en-np")
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
 
     async def ClosePopus(self):
         try:
@@ -15,6 +19,7 @@ class LoginPage:
             pass
         
     async def ClosePopus1(self):
+<<<<<<< HEAD
         ClosePopup2 = ("//button[@class='mission_daily_close_btn']/img")
         try:
             popup = self.page.locator(ClosePopup2)
@@ -53,6 +58,25 @@ class LoginPage:
         await self.page.wait_for_timeout(2000)
     async def is_logged_in(self):
         return await self.page.is_visible("//div[@class='flex items-center']/button[@aria-label='Logout']")
+=======
+        try:
+            ClosePopup2 = ("//button[@class='mission_daily_close_btn']/img")
+            await self.page.locator(ClosePopup2).wait_for(state="visible", timeout=20000)
+            await self.page.locator(ClosePopup2).click()
+            await self.page.wait_for_timeout(2000)
+        except:
+            pass   
+
+    async def login(self, username, password):
+        await self.page.wait_for_timeout(2000)
+        await self.page.click("//button[@class='topbar_btn_1 hidden md:block' and text()='Login']")
+        await self.page.fill("//input[@placeholder='Username']", username)
+        await self.page.fill("//input[@placeholder='Password']", password)
+        await self.page.click("//div[@class='relative mt-8']/button[text()=' Login']")
+        await self.page.wait_for_timeout(2000)
+    async def is_logged_in(self):
+        return await self.page.is_visible("//div[@class='wallet-container-desktop']/button[text()='Logout']")
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
     
     async def click_if_present(self, locator):
         if await self.page.is_visible(locator):

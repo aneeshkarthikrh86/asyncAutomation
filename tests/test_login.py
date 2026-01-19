@@ -13,12 +13,20 @@ async def test_login():
 
         login_page = LoginPage(page)
         await login_page.load()
+<<<<<<< HEAD
         await login_page.ClosePopus()
         await login_page.ClosePopus1()
         await login_page.login("testacc", "qweqwe11")
         await login_page.closepopuplw()
         await login_page.ClosePopus()
         await login_page.ClosePopus1()
+=======
+        # await login_page.ClosePopus()
+        # await login_page.ClosePopus1()
+        await login_page.login("testacc", "qweqwe11")
+        # await login_page.ClosePopus()
+        # await login_page.ClosePopus1()
+>>>>>>> 9f2af534ff4c7514e7a7139b0eecaed6ca6d9274
         assert await login_page.is_logged_in()
         print("Login successful")
 
