@@ -21,7 +21,7 @@ class PaginaionPage:
         total_pages = int(await paginations.last.inner_text())
 
         print(f"📄 Total Pages: {total_pages}")
-
+        provider_name = f"Provider{self.provider_index}"
         for j in range(1, total_pages + 1):
             print(f"\n📄 Page {j}")
 
@@ -29,26 +29,29 @@ class PaginaionPage:
                 f"xpath=//div[@class='p-holder admin-pagination']"
                 f"/button[normalize-space(text())='{j}']"
             )
+            try:
+                # Only scroll pagination if j > 1
+                if j > 1:
+                    if not await page_btn.is_visible():
+                        for _ in range(20):
+                            paginations = self.page.locator(PAGINATION_BUTTONS)
+                            count = await paginations.count()
+                            if count == 0:
+                                break
 
-            # Only scroll pagination if j > 1
-            if j > 1:
-                if not await page_btn.is_visible():
-                    for _ in range(20):
-                        paginations = self.page.locator(PAGINATION_BUTTONS)
-                        count = await paginations.count()
-                        if count == 0:
-                            break
+                            last_visible = paginations.nth(count - 1)
+                            await last_visible.scroll_into_view_if_needed()
+                            await last_visible.click()
+                            await self.page.wait_for_timeout(2000)
 
-                        last_visible = paginations.nth(count - 1)
-                        await last_visible.scroll_into_view_if_needed()
-                        await last_visible.click()
-                        await self.page.wait_for_timeout(2000)
+                            if await page_btn.is_visible():
+                                break
 
-                        if await page_btn.is_visible():
-                            break
-
-                await page_btn.click()
-
+                    await page_btn.click()
+            except Exception as e:
+                print(f"❌ Failed to click on game: {j} | Reason: {e}")
+                await self.screenshot.take_screenshot(name=f"CLICK_FAIL_{provider_name}_P{j}_PageNumber")
+                continue   # ✅ IMPORTANT: move to next game 
             # wait for page to load
             providers = self.page.locator(PROVIDERS_LIST)
             await providers.first.wait_for(state="visible", timeout=20000)

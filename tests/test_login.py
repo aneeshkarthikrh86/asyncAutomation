@@ -2,8 +2,8 @@ import pytest
 from playwright.async_api import async_playwright
 from pages.login_page import LoginPage
 from pages.slot_pages import SlotPage
-from pages.LiveCasino_pages import LiveCasinoPage
-from pages.providers_page import ProvidersPage
+# from pages.LiveCasino_pages import LiveCasinoPage
+# from pages.providers_page import ProvidersPage
 
 @pytest.mark.asyncio
 async def test_login():
@@ -13,8 +13,12 @@ async def test_login():
 
         login_page = LoginPage(page)
         await login_page.load()
+        await login_page.ClosePopus()
+        await login_page.ClosePopus1()
         await login_page.login("testacc", "qweqwe11")
-
+        await login_page.closepopuplw()
+        await login_page.ClosePopus()
+        await login_page.ClosePopus1()
         assert await login_page.is_logged_in()
         print("Login successful")
 
